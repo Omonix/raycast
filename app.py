@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from pynput import keyboard
-import cohere, json
+import cohere, json, webbrowser
 
 with open("./env_var.json") as env:
     config_env = json.load(env)
@@ -29,21 +29,32 @@ def lb_autocomplete(search, key):
         to_do.configure(fg_color=possible_search[0]["fg_color"], border_color=possible_search[0]["border_color"], text_color=possible_search[0]["color_text_input"])
         label_autocomplete.configure(text="", fg_color=possible_search[0]["fg_color"])
         console_box.configure(fg_color=possible_search[0]["fg_color"], border_color=possible_search[0]["border_color"], scrollbar_button_color=possible_search[0]["border_color"], scrollbar_button_hover_color=possible_search[0]["border_color"])
-        console_response.configure(text_color=possible_search[0]["fg_color"])
         to_do.icursor("end")
     elif key.char == '\r':
-        separator = " "
         request = to_do_request.get().strip().split(" ")
         command = request.pop(0)
-        request = separator.join(request)
         if command == "cohere":
+            separator = " "
+            request = separator.join(request)
             lb_cohere_request(request)
+        elif command == "chrome":
+            separator = "+"
+            request = separator.join(request)
+            webbrowser.open(f"https://www.google.com/search?q={request}")
+        elif command == "youtube":
+            separator = "+"
+            request = separator.join(request)
+            webbrowser.open(f"https://www.youtube.com/results?search_query={request}")
+        for i in console_element_list:
+            i.pack_forget()
+            i.pack(fill="x", pady=10)
         to_do_request.set(command + " ")
 def lb_cohere_request(request):
-    console_response.configure(state="normal")
+    console_response = ctk.CTkTextbox(console_box, fg_color="#2E2E2E", text_color=pre_key[0]["color_text_input"], font=("Monospace", 18), corner_radius=20)
+    console_element_list.insert(0, console_response)
     try:
         response = co.chat(message=request).text
-        console_response.insert("0.0", f'Question : {request}\n\n' + response + "\n\n\n---------------------------------------------------------------------------------------------------\n\n\n")
+        console_response.insert("0.0", f'Question : {request}\n\n' + response)
     except:
         console_response.insert("0.0", "ERROR")
     console_response.configure(state="disabled")
@@ -57,8 +68,9 @@ class App(ctk.CTk):
 
 open = False
 shortcut = False
-pre_key = [{"name": "cohere", "fg_color": "#FFD966", "border_color": "#CCAD33", "color_text_input": "#000000"}, {"name": "chrome", "fg_color": "#ffffff", "border_color": "#00f0f0", "color_text_input": "#000000"}, {"name": "youtube", "fg_color": "#ffffff", "border_color": "#f0f000", "color_text_input": "#000000"}]
+pre_key = [{"name": "cohere", "fg_color": "#2E2B1A", "border_color": "#C9AF16", "color_text_input": "#ffffff"}, {"name": "chrome", "fg_color": "#BEBEBE", "border_color": "#ffffff", "color_text_input": "#ffffff"}, {"name": "youtube", "fg_color": "#2E1A1A", "border_color": "#FF0000", "color_text_input": "#ffffff"}]
 possible_search = []
+console_element_list = []
 
 root = App("Raycast", "800x300")
 to_do_request = ctk.StringVar()
@@ -70,14 +82,12 @@ console_box = ctk.CTkScrollableFrame(root, border_width=2, width=720, height=200
 console_box.pack()
 label_autocomplete = ctk.CTkLabel(root, height=20, text="", text_color="#5A5A5A", fg_color="#1A1A2E", font=("Monospace", 16))
 label_autocomplete.place(x=(157 + 10 * len(to_do_request.get())), y=2)
-console_response = ctk.CTkTextbox(console_box, fg_color="#2E2E2E", text_color="#1723CA", font=("Monospace", 18), activate_scrollbars=False)
-console_response.pack(fill="x")
 
 speed_key = keyboard.Listener(on_press=lb_get_key)
 speed_key.start()
 
 while not open:
-    """ok"""
+    """waiting cmd+m"""
 if open:
     root.mainloop()
 
