@@ -47,8 +47,7 @@ console = ctk.CTkScrollableFrame(root, border_width=2, width=720, height=200, fg
 console.pack()
 label_autocomplete = ctk.CTkLabel(root, height=20, text="", text_color="#5A5A5A", fg_color="#1A1A2E", font=("Monospace", 16))
 label_autocomplete.place(x=(157 + 10 * len(to_do_request.get())), y=2)
-label = ctk.CTkLabel(console, text="SSSSSsss", anchor="w")
-label.pack(fill="x")
+
 
 speed_key = keyboard.Listener(on_press=lb_get_key)
 speed_key.start()
