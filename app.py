@@ -22,13 +22,13 @@ def lb_autocomplete(search, key):
             possible_search.append(i)
     if len(possible_search) != 0 and search != "":
         label_autocomplete.configure(text=possible_search[0]["name"][len(search):])
-        label_autocomplete.place(x=(130 + 8.8 * len(search)), y=2.5)
+        label_autocomplete.place(x=(130 + 8.8 * len(search)), y=8.5)
     elif search != "":
         label_autocomplete.configure(text="")
         label_autocomplete.place(x=1000, y=1000)
     else:
         label_autocomplete.configure(text="Enter a command")
-        label_autocomplete.place(x=130, y=2.5)
+        label_autocomplete.place(x=130, y=8.5)
     if key.char == "\r" and len(possible_search) != 0:
         to_do_request.set(possible_search[0]["name"] + " ")
         lb_reset_colors(possible_search)
@@ -71,22 +71,33 @@ def lb_to_website(request, e):
 def lb_reset_colors(possible_search):
     to_do.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], border_color=colors[possible_search[0]["index_color"]]["border_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"])
     label_autocomplete.configure(text="", fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
-    console_box.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], border_color=colors[possible_search[0]["index_color"]]["border_color"], scrollbar_button_color=colors[possible_search[0]["index_color"]]["border_color"], scrollbar_button_hover_color=colors[possible_search[0]["index_color"]]["border_color"])
-    tabs.configure(text_color=colors[possible_search[0]["index_color"]]["color_text_input"], segmented_button_fg_color=colors[possible_search[0]["index_color"]]["fg_color"], segmented_button_selected_color=colors[possible_search[0]["index_color"]]["border_color"], segmented_button_selected_hover_color=colors[possible_search[0]["index_color"]]["border_color"], segmented_button_unselected_color=colors[possible_search[0]["index_color"]]["fg_color"], segmented_button_unselected_hover_color=colors[possible_search[0]["index_color"]]["fg_color"])
+    console_box.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], border_color=colors[possible_search[0]["index_color"]]["border_color"], scrollbar_button_color=colors[possible_search[0]["index_color"]]["border_color"], scrollbar_button_hover_color=colors[possible_search[0]["index_color"]]["hover"])
+    tabs.configure(text_color=colors[possible_search[0]["index_color"]]["color_text_input"], segmented_button_fg_color=colors[possible_search[0]["index_color"]]["fg_color"], segmented_button_selected_color=colors[possible_search[0]["index_color"]]["border_color"], segmented_button_selected_hover_color=colors[possible_search[0]["index_color"]]["border_color"], segmented_button_unselected_color=colors[possible_search[0]["index_color"]]["fg_color"], segmented_button_unselected_hover_color=colors[possible_search[0]["index_color"]]["hover"])
+    label_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["hover"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"])
+    name_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
+    name_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
+    icon_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
+    icon_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
+    combo_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"], button_color=colors[possible_search[0]["index_color"]]["fg_color"], dropdown_fg_color=colors[possible_search[0]["index_color"]]["fg_color"], dropdown_hover_color=colors[possible_search[0]["index_color"]]["hover"], dropdown_text_color=colors[possible_search[0]["index_color"]]["color_text_input"])
+    adress_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
+    adress_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
+    query_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
+    query_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
+    button_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"], hover_color=colors[possible_search[0]["index_color"]]["hover"])
 def lb_handle_type_action(value):
     button_add_action.pack_forget()
     if value == "Website":
-        adress_add_action.pack()
-        query_add_action.pack()
-        adress_label.place(x=75, y=117)
-        query_label.place(x=75, y=145)
+        adress_add_action.pack(pady=5)
+        query_add_action.pack(pady=5)
+        adress_label.place(x=75, y=171)
+        query_label.place(x=75, y=208)
     else:
         adress_add_action.pack_forget()
         query_add_action.pack_forget()
         adress_label.place(x=1000, y=1000)
         query_label.place(x=1000, y=1000)
     button_add_action.pack()
-def lb_show_placeholder(value, text, label, x, y=32):
+def lb_show_placeholder(value, text, label, x, y):
     if value.get() == "":
         label.configure(text=text, font=("Monospace", 15))
         label.place(x=x, y=y)
@@ -104,14 +115,12 @@ class App(ctk.CTk):
 open = False
 shortcut = False
 pre_key = [{"name": "cohere", "type": "ia", "index_color": 2, "adress": "cohere.com", "search_query": None, "icon": ""}, {"name": "chrome", "type": "website", "index_color": 9, "adress": "google.com", "search_query": "search?q=", "icon": ""}, {"name": "youtube", "type": "website", "index_color": 0, "adress": "youtube.com", "search_query": "results?search_query=", "icon": "./assets/img/iconYtb.png"}]
-colors = [{"fg_color": "#2E1A1A", "border_color": "#C91616", "color_text_input": "#ffffff"}, {"fb_color": "#2E221A", "border_color": "#C95516", "color_text_input": "#ffffff"}, {"fg_color": "#2E2B1A", "border_color": "#C9AF16", "color_text_input": "#ffffff"}, {"fg_color": "#1B2E1A", "border_color": "#1FC916", "color_text_input": "#ffffff"}, {"fg_color": "#1A2E2C", "border_color": "#16C9BB", "color_text_input": "#ffffff"}, {"fg_color": "#1C1A2E", "border_color": "#2516C9", "color_text_input": "#ffffff"}, {"fg_color": "#2A1A2E", "border_color": "#7316C9", "color_text_input": "#ffffff"}, {"fg_color": "#2E1A29", "border_color": "#C916A3", "color_text_input": "#ffffff"}, {"fg_color": "#2E1A1F", "border_color": "#C9164C", "color_text_input": "#ffffff"}, {"fg_color": "#BEBEBE", "border_color": "#ffffff", "color_text_input": "#000000"}, {"fg_color": "#", "border_color": "#000000", "color_text_input": "#ffffff"}]
+colors = [{"fg_color": "#2E1A1A", "border_color": "#C91616", "color_text_input": "#ffffff", "hover": "#7C1818"}, {"fb_color": "#2E221A", "border_color": "#C95516", "color_text_input": "#ffffff", "hover": "#7C3C18"}, {"fg_color": "#2E2B1A", "border_color": "#C9AF16", "color_text_input": "#ffffff", "hover": "#7C6D18"}, {"fg_color": "#1B2E1A", "border_color": "#1FC916", "color_text_input": "#ffffff", "hover": "#1D7C18"}, {"fg_color": "#1A2E2C", "border_color": "#16C9BB", "color_text_input": "#ffffff", "hover": "#187C74"}, {"fg_color": "#1C1A2E", "border_color": "#2516C9", "color_text_input": "#ffffff", "hover": "#21187C"}, {"fg_color": "#2A1A2E", "border_color": "#7316C9", "color_text_input": "#ffffff", "hover": "#4F187C"}, {"fg_color": "#2E1A29", "border_color": "#C916A3", "color_text_input": "#ffffff", "hover": "#7C1866"}, {"fg_color": "#2E1A1F", "border_color": "#C9164C", "color_text_input": "#ffffff", "hover": "#7C1836"}, {"fg_color": "#BEBEBE", "border_color": "#ffffff", "color_text_input": "#000000", "hover": "#DFDFDF"}, {"fg_color": "#3C3C3C", "border_color": "#000000", "color_text_input": "#ffffff", "hover": "#1E1E1E"}]
 possible_search = []
 console_element_list = []
-option_element = []
-entry_list = []
 
 root = App("Raycast", "800x340")
-tabs = ctk.CTkTabview(root, width=350, height=250, text_color="#ffffff", segmented_button_fg_color="#000000", segmented_button_selected_color="#3C3C3C", segmented_button_selected_hover_color="#3C3C3C", segmented_button_unselected_color="#000000", segmented_button_unselected_hover_color="#000000")
+tabs = ctk.CTkTabview(root, width=350, height=250, text_color="#ffffff", segmented_button_fg_color="#000000", segmented_button_selected_color="#3C3C3C", segmented_button_selected_hover_color="#3C3C3C", segmented_button_unselected_color="#000000", segmented_button_unselected_hover_color="#1E1E1E")
 tabs.add("Console")
 tabs.add("Options")
 tabs.pack()
@@ -123,39 +132,40 @@ adress_new_action = ctk.StringVar()
 query_new_action = ctk.StringVar()
 
 to_do = ctk.CTkEntry(tabs.tab("Console"), width=500, textvariable=to_do_request, placeholder_text="Enter a command", fg_color="#000000", border_color="#3C3C3C", text_color="white", font=("Monospace", 18))
-to_do.pack()
+to_do.pack(pady=6)
 to_do.bind("")
 to_do.bind("<KeyRelease>", lambda key: lb_autocomplete(to_do_request.get(), key))
 label_autocomplete = ctk.CTkLabel(tabs.tab("Console"), height=20, text="Enter a command", text_color="#5A5A5A", fg_color="#000000", font=("Monospace", 16))
-label_autocomplete.place(x=130, y=2.5)
+label_autocomplete.place(x=130, y=8.5)
 console_box = ctk.CTkScrollableFrame(tabs.tab("Console"), border_width=2, width=720, height=200, fg_color="#000000", border_color="#3C3C3C", scrollbar_button_color="#3C3C3C", scrollbar_button_hover_color="#3C3C3C")
-console_box.pack()
-entry_list.append({"element": to_do, "placeholder": [label_autocomplete]})
+console_box.pack(pady=6)
 
-label_add_action = ctk.CTkLabel(tabs.tab("Options"), text="Add a command", font=("Monospace", 18)).pack()
-name_add_action = ctk.CTkEntry(tabs.tab("Options"), width=200, textvariable=name_new_action, placeholder_text="Command's name", font=("Monospace", 18))
-name_add_action.pack()
-name_label = ctk.CTkLabel(tabs.tab("Options"), width=10, height=10, text="Command's name", font=("Monospace", 15))
-name_label.place(x=75, y=33)
-icon_add_action = ctk.CTkEntry(tabs.tab("Options"), width=200, textvariable=icon_new_action, placeholder_text="Icon's path", font=("Monospace", 18))
-icon_add_action.pack()
-icon_label = ctk.CTkLabel(tabs.tab("Options"), width=10, height=10, text="Icon's path", font=("Monospace", 15))
-icon_label.place(x=75, y=61)
-combo_add_action = ctk.CTkComboBox(tabs.tab("Options"), values=["Website", "Software"], state="readonly", font=("Monospace", 18), command=lambda value: lb_handle_type_action(value)).pack()
-adress_add_action = ctk.CTkEntry(tabs.tab("Options"), width=200, textvariable=adress_new_action, placeholder_text="Adress", font=("Monospace", 18))
+label_add_action = ctk.CTkLabel(tabs.tab("Options"), fg_color="#1E1E1E", text_color="#ffffff", corner_radius=10, text="Add a command", font=("Monospace", 18))
+label_add_action.pack(pady=10)
+name_add_action = ctk.CTkEntry(tabs.tab("Options"), fg_color="#000000", text_color="#ffffff", border_color="#3C3C3C", width=200, textvariable=name_new_action, placeholder_text="Command's name", font=("Monospace", 18))
+name_add_action.pack(pady=5)
+name_label = ctk.CTkLabel(tabs.tab("Options"), fg_color="#000000", text_color="#5A5A5A", width=10, height=10, text="Command's name", font=("Monospace", 15))
+name_label.place(x=75, y=58)
+icon_add_action = ctk.CTkEntry(tabs.tab("Options"), fg_color="#000000", text_color="#ffffff", border_color="#3C3C3C", width=200, textvariable=icon_new_action, placeholder_text="Icon's path", font=("Monospace", 18))
+icon_add_action.pack(pady=5)
+icon_label = ctk.CTkLabel(tabs.tab("Options"), fg_color="#000000", text_color="#5A5A5A", width=10, height=10, text="Icon's path", font=("Monospace", 15))
+icon_label.place(x=75, y=95)
+combo_add_action = ctk.CTkComboBox(tabs.tab("Options"), fg_color="#000000", text_color="#ffffff", border_color="#3C3C3C", button_color="#000000", dropdown_fg_color="#000000", dropdown_hover_color="#1E1E1E", dropdown_text_color="#ffffff", values=["Website", "Software"], state="readonly", font=("Monospace", 18), command=lambda value: lb_handle_type_action(value))
+combo_add_action.pack(pady=5)
+adress_add_action = ctk.CTkEntry(tabs.tab("Options"), fg_color="#000000", text_color="#ffffff", border_color="#3C3C3C", width=200, textvariable=adress_new_action, placeholder_text="Adress", font=("Monospace", 18))
 adress_add_action.pack_forget()
-adress_label = ctk.CTkLabel(tabs.tab("Options"), width=10, height=10, text="Adress", font=("Monospace", 15))
+adress_label = ctk.CTkLabel(tabs.tab("Options"), fg_color="#000000", text_color="#5A5A5A", width=10, height=10, text="Adress", font=("Monospace", 15))
 adress_label.pack_forget()
-query_add_action = ctk.CTkEntry(tabs.tab("Options"), width=200, textvariable=query_new_action, placeholder_text="Search query", font=("Monospace", 18))
+query_add_action = ctk.CTkEntry(tabs.tab("Options"), fg_color="#000000", text_color="#ffffff", border_color="#3C3C3C", width=200, textvariable=query_new_action, placeholder_text="Search query", font=("Monospace", 18))
 query_add_action.pack_forget()
-query_label = ctk.CTkLabel(tabs.tab("Options"), width=10, height=10, text="Search query", font=("Monospace", 15))
+query_label = ctk.CTkLabel(tabs.tab("Options"), fg_color="#000000", text_color="#5A5A5A", width=10, height=10, text="Search query", font=("Monospace", 15))
 query_label.pack_forget()
-button_add_action = ctk.CTkButton(tabs.tab("Options"), text="Add", font=("Monospace", 18))
-button_add_action.pack()
-name_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(name_new_action, "Command's name", name_label, 75, 33))
-icon_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(icon_new_action, "Icon's path", icon_label, 75, 61))
-adress_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(adress_new_action, "Adress", adress_label, 75, 117))
-query_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(query_new_action, "Search query", query_label, 75, 145))
+button_add_action = ctk.CTkButton(tabs.tab("Options"), border_width=2, fg_color="#000000", text_color="#ffffff", border_color="#3C3C3C", hover_color="#1E1E1E", text="Add", font=("Monospace", 18), cursor="hand2")
+button_add_action.pack(pady=10)
+name_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(name_new_action, "Command's name", name_label, 75, 58))
+icon_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(icon_new_action, "Icon's path", icon_label, 75, 95))
+adress_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(adress_new_action, "Adress", adress_label, 75, 171))
+query_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(query_new_action, "Search query", query_label, 75, 208))
 
 speed_key = keyboard.Listener(on_press=lb_get_key)
 speed_key.start()
