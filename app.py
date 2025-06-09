@@ -1,23 +1,38 @@
 import customtkinter as ctk
 from pynput import keyboard
 from PIL import Image
-import cohere, json, webbrowser
+import cohere, json, webbrowser, string
 
-with open("./env_var.json") as env:
-    config_env = json.load(env)
-co = cohere.Client(config_env["KEY_API"])
-
+def lb_vigenere(message, key, direction=1):
+    chars = ' ' + string.punctuation + string.ascii_letters + string.digits
+    key_index = 0
+    encrypted_message = ''
+    for letter in message:
+        if ord(letter) == 10:
+            encrypted_message += '\n'
+            continue
+        key_char = key[key_index % len(key)]
+        key_index += 1
+        offset = chars.index(key_char)
+        index = chars.find(letter)
+        new_index = (index + offset*direction) % len(chars)
+        encrypted_message += chars[new_index]
+    return encrypted_message
+def lb_decrypt(message, key):
+    return lb_vigenere(message, key, -1)
+def lb_encrypt(message, key):
+    return lb_vigenere(message, key, 1)
 def lb_get_key(key):
-    global open, shortcut, possible_search
+    global opener, shortcut, possible_search
     try:
-        if key.char == "m" and shortcut and not open:
-            open = True
+        if key.char == "m" and shortcut and not opener:
+            opener = True
     except:
-        if key == keyboard.Key.cmd and not open:
+        if key == keyboard.Key.cmd and not opener:
             shortcut = True
 def lb_autocomplete(search, key):
     possible_search = []
-    for i in pre_key:
+    for i in key_words:
         if i["name"][:len(search)] == search:
             possible_search.append(i)
     if len(possible_search) != 0 and search != "":
@@ -36,7 +51,7 @@ def lb_autocomplete(search, key):
     elif key.char == '\r':
         request = to_do_request.get().strip().split(" ")
         command = request.pop(0)
-        for i in pre_key:
+        for i in key_words:
             if i["name"] == command:
                 if i["type"] == "Website":
                     lb_to_website(request, i)
@@ -49,7 +64,7 @@ def lb_autocomplete(search, key):
 def lb_cohere_request(request):
     separator = " "
     request = separator.join(request)
-    console_response = ctk.CTkTextbox(console_box, fg_color="#2E2E2E", text_color=colors[pre_key[0]["index_color"]]["color_text_input"], font=("Monospace", 18), corner_radius=20)
+    console_response = ctk.CTkTextbox(console_box, fg_color="#2E2E2E", text_color=colors[key_words[0]["index_color"]]["color_text_input"], font=("Monospace", 18), corner_radius=20)
     console_element_list.insert(0, console_response)
     try:
         response = co.chat(message=request).text
@@ -112,7 +127,9 @@ def lb_add_new_action():
         for i in range(len(colors)):
             if colors[i]["name"] == color_add_action.get():
                 index = i
-        pre_key.append({"name": name_new_action.get(), "type": combo_add_action.get(), "index_color": index, "adress": adress_new_action.get(), "search_query": query_new_action.get(), "icon": icon_add_action.get()})
+        key_words.append({"name": name_new_action.get(), "type": combo_add_action.get(), "index_color": index, "adress": adress_new_action.get(), "search_query": query_new_action.get(), "icon": icon_add_action.get()})
+        with open("./command_info.json", "w", encoding="utf-8") as data:
+            data.write(lb_encrypt(f'{key_words}', encrypt_key))
         name_new_action.set("")
         icon_new_action.set("")
         adress_new_action.set("")
@@ -134,9 +151,21 @@ class App(ctk.CTk):
         self.resizable(width=False, height=False)
         self.configure(fg_color="#1D1D1D")
 
-open = False
+with open("./env_var.json", "r") as env:
+    config_env = json.load(env)
+encrypt_key = config_env["DECRYPT"]
+try:
+    with open("./command_info.json", "r") as data:
+        if data.read() != "":
+            key_words = json.loads("\"".join(lb_decrypt(data.read(), encrypt_key).split("'")))
+        else:
+            key_words = config_env["DEFAULT_KEY"]
+except:
+    key_words = config_env["DEFAULT_KEY"]
+co = cohere.Client(config_env["KEY_API"])
+
+opener = False
 shortcut = False
-pre_key = [{"name": "cohere", "type": "AI", "index_color": 2, "adress": "cohere.com", "search_query": None, "icon": ""}, {"name": "chrome", "type": "Website", "index_color": 9, "adress": "google.com", "search_query": "search?q=", "icon": ""}, {"name": "youtube", "type": "Website", "index_color": 0, "adress": "youtube.com", "search_query": "results?search_query=", "icon": "./assets/img/iconYtb.png"}]
 colors = [{"name": "Red", "fg_color": "#2E1A1A", "border_color": "#C91616", "color_text_input": "#ffffff", "hover": "#7C1818"}, {"name": "Orange", "fb_color": "#2E221A", "border_color": "#C95516", "color_text_input": "#ffffff", "hover": "#7C3C18"}, {"name": "Yellow", "fg_color": "#2E2B1A", "border_color": "#C9AF16", "color_text_input": "#ffffff", "hover": "#7C6D18"}, {"name": "Green", "fg_color": "#1B2E1A", "border_color": "#1FC916", "color_text_input": "#ffffff", "hover": "#1D7C18"}, {"name": "Cyan", "fg_color": "#1A2E2C", "border_color": "#16C9BB", "color_text_input": "#ffffff", "hover": "#187C74"}, {"name": "Blue", "fg_color": "#1C1A2E", "border_color": "#2516C9", "color_text_input": "#ffffff", "hover": "#21187C"}, {"name": "Purple", "fg_color": "#2A1A2E", "border_color": "#7316C9", "color_text_input": "#ffffff", "hover": "#4F187C"}, {"name": "Pink", "fg_color": "#2E1A29", "border_color": "#C916A3", "color_text_input": "#ffffff", "hover": "#7C1866"}, {"name": "Dark pink", "fg_color": "#2E1A1F", "border_color": "#C9164C", "color_text_input": "#ffffff", "hover": "#7C1836"}, {"name": "White", "fg_color": "#BEBEBE", "border_color": "#ffffff", "color_text_input": "#000000", "hover": "#DFDFDF"}, {"name": "Black", "fg_color": "#3C3C3C", "border_color": "#000000", "color_text_input": "#ffffff", "hover": "#1E1E1E"}]
 possible_search = []
 console_element_list = []
@@ -196,7 +225,7 @@ query_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(query_new_
 speed_key = keyboard.Listener(on_press=lb_get_key)
 speed_key.start()
 
-while not open:
+while not opener:
     """waiting cmd+m"""
-if open:
+if opener:
     root.mainloop()
