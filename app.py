@@ -152,7 +152,7 @@ def lb_add_new_action():
             key_words.append({"name": name_new_action.get(), "type": combo_add_action.get(), "index_color": index, "adress": "", "search_query": "", "icon": icon_add_action.get(), "path": path_add_action.get()})
         path_new_action.set("")
         lb_show_placeholder(path_new_action, "Path's file", path_label, 250, 133)
-    with open("./command_info.json", "w", encoding="utf-8") as data:
+    with open("./assets/json/command_info.json", "w", encoding="utf-8") as data:
         data.write(lb_encrypt(f'{key_words}', encrypt_key))
     name_new_action.set("")
     icon_new_action.set("")
@@ -169,7 +169,7 @@ class App(ctk.CTk):
         self.resizable(width=False, height=False)
         self.configure(fg_color="#1D1D1D")
 
-with open("./env_var.json", "r") as env:
+with open("./assets/json/env_var.json", "r") as env:
     config_env = json.load(env)
 encrypt_key = config_env["DECRYPT"]
 try:
