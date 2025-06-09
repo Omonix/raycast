@@ -1,27 +1,24 @@
 import customtkinter as ctk
 from pynput import keyboard
 from PIL import Image
-import cohere, json, webbrowser, string
+import cohere, json, webbrowser, string, subprocess
 
 def lb_vigenere(message, key, direction=1):
-    chars = ' ' + string.punctuation + string.ascii_letters + string.digits
+    alphabet = ' ' + string.punctuation + string.ascii_letters + string.digits
     key_index = 0
     encrypted_message = ''
-    for letter in message:
-        if ord(letter) == 10:
-            encrypted_message += '\n'
-            continue
+    for char in message:
         key_char = key[key_index % len(key)]
         key_index += 1
-        offset = chars.index(key_char)
-        index = chars.find(letter)
-        new_index = (index + offset*direction) % len(chars)
-        encrypted_message += chars[new_index]
+        offset = alphabet.index(key_char)
+        index = alphabet.find(char)
+        new_index = (index + offset*direction) % len(alphabet)
+        encrypted_message += alphabet[new_index]
     return encrypted_message
 def lb_decrypt(message, key):
     return lb_vigenere(message, key, -1)
 def lb_encrypt(message, key):
-    return lb_vigenere(message, key, 1)
+    return lb_vigenere(message, key)
 def lb_get_key(key):
     global opener, shortcut, possible_search
     try:
@@ -57,6 +54,8 @@ def lb_autocomplete(search, key):
                     lb_to_website(request, i)
                 elif i["type"] == "AI":
                     lb_cohere_request(request)
+                elif i["type"] == "Software":
+                    lb_to_software(i)
         for i in console_element_list:
             i.pack_forget()
             i.pack(fill="x", pady=10)
@@ -73,16 +72,23 @@ def lb_cohere_request(request):
         console_response.insert("0.0", "ERROR")
     console_response.configure(state="disabled")
 def lb_to_website(request, e):
+    lb_send_log(e, f"   Search \"{" ".join(request)}\" on {e["name"]} ({e["adress"]})")
+    separator = "+"
+    request = separator.join(request)
+    webbrowser.open(f"https://www.{e["adress"]}/{e["search_query"] + request}")
+def lb_to_software(e):
+    lb_send_log(e, f"   Execute \"{e["name"]}\"")
+    try:
+        subprocess.Popen([e["path"]])
+    except:
+        print('Invalid path')
+def lb_send_log(e, message):
     try:
         image = Image.open(e["icon"])
     except:
         image = Image.open("./assets/img/iconDefault.jpg")
-    image_comp = ctk.CTkImage(light_image=image, dark_image=image, size=(48, 48))
-    console_response = ctk.CTkLabel(console_box, image=image_comp, compound="left", text=f"  Search \"{" ".join(request)}\" on {e["name"]} ({e["adress"]})", fg_color="#2E2E2E", text_color="#ffffff", font=("Monospace", 18), corner_radius=20)
+    console_response = ctk.CTkLabel(console_box, image=ctk.CTkImage(light_image=image, dark_image=image, size=(48, 48)), compound="left", text=message, fg_color="#2E2E2E", text_color="#ffffff", font=("Monospace", 18), corner_radius=20)
     console_element_list.insert(0, console_response)
-    separator = "+"
-    request = separator.join(request)
-    webbrowser.open(f"https://www.{e["adress"]}/{e["search_query"] + request}")
 def lb_reset_colors(possible_search):
     to_do.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], border_color=colors[possible_search[0]["index_color"]]["border_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"])
     label_autocomplete.configure(text="", fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
@@ -99,19 +105,25 @@ def lb_reset_colors(possible_search):
     adress_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
     query_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
     query_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
+    path_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
+    path_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
     button_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"], hover_color=colors[possible_search[0]["index_color"]]["hover"])
 def lb_handle_type_action(value):
     button_add_action.pack_forget()
     if value == "Website":
         adress_add_action.pack(pady=5)
         query_add_action.pack(pady=5)
+        path_add_action.pack_forget()
         adress_label.place(x=250, y=133)
         query_label.place(x=250, y=171)
+        path_label.place(x=1000, y=1000)
     else:
         adress_add_action.pack_forget()
         query_add_action.pack_forget()
+        path_add_action.pack(pady=5)
         adress_label.place(x=1000, y=1000)
         query_label.place(x=1000, y=1000)
+        path_label.place(x=0, y=0)
     button_add_action.pack(side="bottom", pady=25)
 def lb_show_placeholder(value, text, label, x, y):
     if value.get() == "":
@@ -122,27 +134,33 @@ def lb_show_placeholder(value, text, label, x, y):
         label.place(x=1000, y=1000)
 def lb_add_new_action():
     global index
-    if name_new_action.get() != "" and icon_new_action.get() != "" and adress_new_action.get() != "" and query_new_action.get() != "":
-        index = 0
-        for i in range(len(colors)):
-            if colors[i]["name"] == color_add_action.get():
-                index = i
-        key_words.append({"name": name_new_action.get(), "type": combo_add_action.get(), "index_color": index, "adress": adress_new_action.get(), "search_query": query_new_action.get(), "icon": icon_add_action.get()})
-        with open("./command_info.json", "w", encoding="utf-8") as data:
-            data.write(lb_encrypt(f'{key_words}', encrypt_key))
-        name_new_action.set("")
-        icon_new_action.set("")
-        adress_new_action.set("")
-        query_new_action.set("")
-        lb_show_placeholder(name_new_action, "Command's name", name_label, 250, 58)
-        lb_show_placeholder(icon_new_action, "Icon's path", icon_label, 250, 95)
-        lb_show_placeholder(adress_new_action, "Adress", adress_label, 250, 133)
-        lb_show_placeholder(query_new_action, "Search query", query_label, 250, 171)
-        combo_add_action.set("Software")
-        color_add_action.set("Red")
-        lb_handle_type_action("Software")
-    else:
-        print('error')
+    index = 0
+    for i in range(len(colors)):
+        if colors[i]["name"] == color_add_action.get():
+            index = i
+    if combo_add_action.get() == "Website":
+        if name_new_action.get() != "" and adress_new_action.get() != "" and query_new_action.get() != "":
+            key_words.append({"name": name_new_action.get(), "type": combo_add_action.get(), "index_color": index, "adress": adress_new_action.get(), "search_query": query_new_action.get(), "icon": icon_add_action.get(), "path": ""})
+            adress_new_action.set("")
+            query_new_action.set("")
+            lb_show_placeholder(adress_new_action, "Adress", adress_label, 250, 133)
+            lb_show_placeholder(query_new_action, "Search query", query_label, 250, 171)
+        else:
+            print('error')
+    elif combo_add_action.get() == "Software":
+        if name_new_action.get() != "" and path_add_action.get() != "":
+            key_words.append({"name": name_new_action.get(), "type": combo_add_action.get(), "index_color": index, "adress": "", "search_query": "", "icon": icon_add_action.get(), "path": path_add_action.get()})
+        path_new_action.set("")
+        lb_show_placeholder(path_new_action, "Path's file", path_label, 250, 133)
+    with open("./command_info.json", "w", encoding="utf-8") as data:
+        data.write(lb_encrypt(f'{key_words}', encrypt_key))
+    name_new_action.set("")
+    icon_new_action.set("")
+    lb_show_placeholder(name_new_action, "Command's name", name_label, 250, 58)
+    lb_show_placeholder(icon_new_action, "Icon's path", icon_label, 250, 95)
+    combo_add_action.set("Software")
+    color_add_action.set("Red")
+    lb_handle_type_action("Software")
 class App(ctk.CTk):
     def __init__(self, title, dimension):
         super().__init__()
@@ -156,9 +174,9 @@ with open("./env_var.json", "r") as env:
 encrypt_key = config_env["DECRYPT"]
 try:
     with open("./command_info.json", "r") as data:
-        if data.read() != "":
+        try:
             key_words = json.loads("\"".join(lb_decrypt(data.read(), encrypt_key).split("'")))
-        else:
+        except:
             key_words = config_env["DEFAULT_KEY"]
 except:
     key_words = config_env["DEFAULT_KEY"]
@@ -166,7 +184,7 @@ co = cohere.Client(config_env["KEY_API"])
 
 opener = False
 shortcut = False
-colors = [{"name": "Red", "fg_color": "#2E1A1A", "border_color": "#C91616", "color_text_input": "#ffffff", "hover": "#7C1818"}, {"name": "Orange", "fb_color": "#2E221A", "border_color": "#C95516", "color_text_input": "#ffffff", "hover": "#7C3C18"}, {"name": "Yellow", "fg_color": "#2E2B1A", "border_color": "#C9AF16", "color_text_input": "#ffffff", "hover": "#7C6D18"}, {"name": "Green", "fg_color": "#1B2E1A", "border_color": "#1FC916", "color_text_input": "#ffffff", "hover": "#1D7C18"}, {"name": "Cyan", "fg_color": "#1A2E2C", "border_color": "#16C9BB", "color_text_input": "#ffffff", "hover": "#187C74"}, {"name": "Blue", "fg_color": "#1C1A2E", "border_color": "#2516C9", "color_text_input": "#ffffff", "hover": "#21187C"}, {"name": "Purple", "fg_color": "#2A1A2E", "border_color": "#7316C9", "color_text_input": "#ffffff", "hover": "#4F187C"}, {"name": "Pink", "fg_color": "#2E1A29", "border_color": "#C916A3", "color_text_input": "#ffffff", "hover": "#7C1866"}, {"name": "Dark pink", "fg_color": "#2E1A1F", "border_color": "#C9164C", "color_text_input": "#ffffff", "hover": "#7C1836"}, {"name": "White", "fg_color": "#BEBEBE", "border_color": "#ffffff", "color_text_input": "#000000", "hover": "#DFDFDF"}, {"name": "Black", "fg_color": "#3C3C3C", "border_color": "#000000", "color_text_input": "#ffffff", "hover": "#1E1E1E"}]
+colors = [{"name": "Red", "fg_color": "#2E1A1A", "border_color": "#C91616", "color_text_input": "#ffffff", "hover": "#7C1818"}, {"name": "Orange", "fg_color": "#2E221A", "border_color": "#C95516", "color_text_input": "#ffffff", "hover": "#7C3C18"}, {"name": "Yellow", "fg_color": "#2E2B1A", "border_color": "#C9AF16", "color_text_input": "#ffffff", "hover": "#7C6D18"}, {"name": "Green", "fg_color": "#1B2E1A", "border_color": "#1FC916", "color_text_input": "#ffffff", "hover": "#1D7C18"}, {"name": "Cyan", "fg_color": "#1A2E2C", "border_color": "#16C9BB", "color_text_input": "#ffffff", "hover": "#187C74"}, {"name": "Blue", "fg_color": "#1C1A2E", "border_color": "#2516C9", "color_text_input": "#ffffff", "hover": "#21187C"}, {"name": "Purple", "fg_color": "#2A1A2E", "border_color": "#7316C9", "color_text_input": "#ffffff", "hover": "#4F187C"}, {"name": "Pink", "fg_color": "#2E1A29", "border_color": "#C916A3", "color_text_input": "#ffffff", "hover": "#7C1866"}, {"name": "Dark pink", "fg_color": "#2E1A1F", "border_color": "#C9164C", "color_text_input": "#ffffff", "hover": "#7C1836"}, {"name": "White", "fg_color": "#BEBEBE", "border_color": "#ffffff", "color_text_input": "#000000", "hover": "#DFDFDF"}, {"name": "Black", "fg_color": "#3C3C3C", "border_color": "#000000", "color_text_input": "#ffffff", "hover": "#1E1E1E"}]
 possible_search = []
 console_element_list = []
 
@@ -181,6 +199,7 @@ name_new_action = ctk.StringVar()
 icon_new_action = ctk.StringVar()
 adress_new_action = ctk.StringVar()
 query_new_action = ctk.StringVar()
+path_new_action = ctk.StringVar()
 
 to_do = ctk.CTkEntry(tabs.tab("Console"), width=500, textvariable=to_do_request, placeholder_text="Enter a command", fg_color="#000000", border_color="#3C3C3C", text_color="white", font=("Monospace", 18))
 to_do.pack(pady=6)
@@ -215,12 +234,17 @@ query_add_action = ctk.CTkEntry(tabs.tab("Options"), fg_color="#000000", text_co
 query_add_action.pack_forget()
 query_label = ctk.CTkLabel(tabs.tab("Options"), fg_color="#000000", text_color="#5A5A5A", width=10, height=10, text="Search query", font=("Monospace", 15))
 query_label.pack_forget()
+path_add_action = ctk.CTkEntry(tabs.tab("Options"), fg_color="#000000", text_color="#ffffff", border_color="#3C3C3C", width=200, textvariable=path_new_action, placeholder_text="Path's file", font=("Monospace", 18))
+path_add_action.pack(pady=5)
+path_label = ctk.CTkLabel(tabs.tab("Options"), fg_color="#000000", text_color="#5A5A5A", width=10, height=10, text="Path's file", font=("Monospace", 15))
+path_label.place(x=250, y=133)
 button_add_action = ctk.CTkButton(tabs.tab("Options"), border_width=2, fg_color="#000000", text_color="#ffffff", border_color="#3C3C3C", hover_color="#1E1E1E", text="Add", font=("Monospace", 18), cursor="hand2", command=lb_add_new_action)
 button_add_action.pack(side="bottom", pady=25)
 name_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(name_new_action, "Command's name", name_label, 250, 58))
 icon_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(icon_new_action, "Icon's path", icon_label, 250, 95))
 adress_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(adress_new_action, "Adress", adress_label, 250, 133))
 query_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(query_new_action, "Search query", query_label, 250, 171))
+path_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(path_new_action, "Path's file", path_label, 250, 133))
 
 speed_key = keyboard.Listener(on_press=lb_get_key)
 speed_key.start()
