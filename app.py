@@ -123,7 +123,7 @@ def lb_handle_type_action(value):
         path_add_action.pack(pady=5)
         adress_label.place(x=1000, y=1000)
         query_label.place(x=1000, y=1000)
-        path_label.place(x=0, y=0)
+        path_label.place(x=250, y=133)
     button_add_action.pack(side="bottom", pady=25)
 def lb_show_placeholder(value, text, label, x, y):
     if value.get() == "":
