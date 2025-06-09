@@ -173,7 +173,7 @@ with open("./assets/json/env_var.json", "r") as env:
     config_env = json.load(env)
 encrypt_key = config_env["DECRYPT"]
 try:
-    with open("./command_info.json", "r") as data:
+    with open("./assets/json/command_info.json", "r") as data:
         try:
             key_words = json.loads("\"".join(lb_decrypt(data.read(), encrypt_key).split("'")))
         except:
