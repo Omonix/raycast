@@ -1,10 +1,18 @@
 import customtkinter as ctk
 from pynput import keyboard
 from PIL import Image
-import cohere, json, webbrowser, string, subprocess
+import cohere, json, webbrowser, string, subprocess, random
 
+def lb_gen_password(length):
+    alphabet = " !#$%&'()*+,-./:;<=>?@[]^_`{|}~" + string.ascii_letters + string.digits
+    pwd = ""
+    i = 0
+    while i < int(length):
+        pwd = pwd + random.choice(alphabet)
+        i = i + 1
+    return pwd
 def lb_vigenere(message, key, direction=1):
-    alphabet = ' ' + string.punctuation + string.ascii_letters + string.digits
+    alphabet = " !#$%&'()*+,-./:;<=>?@[]^_`{|}~" + string.ascii_letters + string.digits
     key_index = 0
     encrypted_message = ''
     for char in message:
@@ -46,8 +54,10 @@ def lb_autocomplete(search, key):
         lb_reset_colors(possible_search)
         to_do.icursor("end")
     elif key.char == '\r':
+        global found_command
         request = to_do_request.get().strip().split(" ")
         command = request.pop(0)
+        found_command = False
         for i in key_words:
             if i["name"] == command:
                 if i["type"] == "Website":
@@ -56,6 +66,10 @@ def lb_autocomplete(search, key):
                     lb_cohere_request(request)
                 elif i["type"] == "Software":
                     lb_to_software(i)
+                found_command = True
+        if not found_command:
+            found_command = True
+            PopUp(root, "Error", "200x100", "This command doesn't exist", color_index)
         for i in console_element_list:
             i.pack_forget()
             i.pack(fill="x", pady=10)
@@ -81,7 +95,7 @@ def lb_to_software(e):
     try:
         subprocess.Popen([e["path"]])
     except:
-        print('Invalid path')
+        PopUp(root, "Error", "200x100", "Wrong path to executable file", color_index)
 def lb_send_log(e, message):
     try:
         image = Image.open(e["icon"])
@@ -90,24 +104,26 @@ def lb_send_log(e, message):
     console_response = ctk.CTkLabel(console_box, image=ctk.CTkImage(light_image=image, dark_image=image, size=(48, 48)), compound="left", text=message, fg_color="#2E2E2E", text_color="#ffffff", font=("Monospace", 18), corner_radius=20)
     console_element_list.insert(0, console_response)
 def lb_reset_colors(possible_search):
-    to_do.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], border_color=colors[possible_search[0]["index_color"]]["border_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"])
-    label_autocomplete.configure(text="", fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
-    console_box.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], border_color=colors[possible_search[0]["index_color"]]["border_color"], scrollbar_button_color=colors[possible_search[0]["index_color"]]["border_color"], scrollbar_button_hover_color=colors[possible_search[0]["index_color"]]["hover"])
-    tabs.configure(text_color=colors[possible_search[0]["index_color"]]["color_text_input"], segmented_button_fg_color=colors[possible_search[0]["index_color"]]["fg_color"], segmented_button_selected_color=colors[possible_search[0]["index_color"]]["border_color"], segmented_button_selected_hover_color=colors[possible_search[0]["index_color"]]["border_color"], segmented_button_unselected_color=colors[possible_search[0]["index_color"]]["fg_color"], segmented_button_unselected_hover_color=colors[possible_search[0]["index_color"]]["hover"])
-    label_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["hover"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"])
-    name_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
-    name_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
-    icon_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
-    icon_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
-    combo_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"], button_color=colors[possible_search[0]["index_color"]]["fg_color"], dropdown_fg_color=colors[possible_search[0]["index_color"]]["fg_color"], dropdown_hover_color=colors[possible_search[0]["index_color"]]["hover"], dropdown_text_color=colors[possible_search[0]["index_color"]]["color_text_input"])
-    color_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"], button_color=colors[possible_search[0]["index_color"]]["fg_color"], dropdown_fg_color=colors[possible_search[0]["index_color"]]["fg_color"], dropdown_hover_color=colors[possible_search[0]["index_color"]]["hover"], dropdown_text_color=colors[possible_search[0]["index_color"]]["color_text_input"])
-    adress_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
-    adress_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
-    query_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
-    query_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
-    path_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"])
-    path_label.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"])
-    button_add_action.configure(fg_color=colors[possible_search[0]["index_color"]]["fg_color"], text_color=colors[possible_search[0]["index_color"]]["color_text_input"], border_color=colors[possible_search[0]["index_color"]]["border_color"], hover_color=colors[possible_search[0]["index_color"]]["hover"])
+    global color_index
+    color_index = possible_search[0]["index_color"]
+    to_do.configure(fg_color=colors[color_index]["fg_color"], border_color=colors[color_index]["border_color"], text_color=colors[color_index]["color_text_input"])
+    label_autocomplete.configure(text="", fg_color=colors[color_index]["fg_color"])
+    console_box.configure(fg_color=colors[color_index]["fg_color"], border_color=colors[color_index]["border_color"], scrollbar_button_color=colors[color_index]["border_color"], scrollbar_button_hover_color=colors[color_index]["hover"])
+    tabs.configure(text_color=colors[color_index]["color_text_input"], segmented_button_fg_color=colors[color_index]["fg_color"], segmented_button_selected_color=colors[color_index]["border_color"], segmented_button_selected_hover_color=colors[color_index]["border_color"], segmented_button_unselected_color=colors[color_index]["fg_color"], segmented_button_unselected_hover_color=colors[color_index]["hover"])
+    label_add_action.configure(fg_color=colors[color_index]["hover"], text_color=colors[color_index]["color_text_input"])
+    name_add_action.configure(fg_color=colors[color_index]["fg_color"], text_color=colors[color_index]["color_text_input"], border_color=colors[color_index]["border_color"])
+    name_label.configure(fg_color=colors[color_index]["fg_color"])
+    icon_add_action.configure(fg_color=colors[color_index]["fg_color"], text_color=colors[color_index]["color_text_input"], border_color=colors[color_index]["border_color"])
+    icon_label.configure(fg_color=colors[color_index]["fg_color"])
+    combo_add_action.configure(fg_color=colors[color_index]["fg_color"], text_color=colors[color_index]["color_text_input"], border_color=colors[color_index]["border_color"], button_color=colors[color_index]["fg_color"], dropdown_fg_color=colors[color_index]["fg_color"], dropdown_hover_color=colors[color_index]["hover"], dropdown_text_color=colors[color_index]["color_text_input"])
+    color_add_action.configure(fg_color=colors[color_index]["fg_color"], text_color=colors[color_index]["color_text_input"], border_color=colors[color_index]["border_color"], button_color=colors[color_index]["fg_color"], dropdown_fg_color=colors[color_index]["fg_color"], dropdown_hover_color=colors[color_index]["hover"], dropdown_text_color=colors[color_index]["color_text_input"])
+    adress_add_action.configure(fg_color=colors[color_index]["fg_color"], text_color=colors[color_index]["color_text_input"], border_color=colors[color_index]["border_color"])
+    adress_label.configure(fg_color=colors[color_index]["fg_color"])
+    query_add_action.configure(fg_color=colors[color_index]["fg_color"], text_color=colors[color_index]["color_text_input"], border_color=colors[color_index]["border_color"])
+    query_label.configure(fg_color=colors[color_index]["fg_color"])
+    path_add_action.configure(fg_color=colors[color_index]["fg_color"], text_color=colors[color_index]["color_text_input"], border_color=colors[color_index]["border_color"])
+    path_label.configure(fg_color=colors[color_index]["fg_color"])
+    button_add_action.configure(fg_color=colors[color_index]["fg_color"], text_color=colors[color_index]["color_text_input"], border_color=colors[color_index]["border_color"], hover_color=colors[color_index]["hover"])
 def lb_handle_type_action(value):
     button_add_action.pack_forget()
     if value == "Website":
@@ -146,13 +162,17 @@ def lb_add_new_action():
             lb_show_placeholder(adress_new_action, "Adress", adress_label, 250, 133)
             lb_show_placeholder(query_new_action, "Search query", query_label, 250, 171)
         else:
-            print('error')
+            PopUp(root, "Error", "200x100", "Missing arguments", color_index)
+            return
     elif combo_add_action.get() == "Software":
         if name_new_action.get() != "" and path_add_action.get() != "":
             key_words.append({"name": name_new_action.get(), "type": combo_add_action.get(), "index_color": index, "adress": "", "search_query": "", "icon": icon_add_action.get(), "path": path_add_action.get()})
+        else:
+            PopUp(root, "Error", "200x100", "Missing arguments", color_index)
+            return
         path_new_action.set("")
         lb_show_placeholder(path_new_action, "Path's file", path_label, 250, 133)
-    with open("./command_info.json", "w", encoding="utf-8") as data:
+    with open("./assets/json/command_info.json", "w", encoding="utf-8") as data:
         data.write(lb_encrypt(f'{key_words}', encrypt_key))
     name_new_action.set("")
     icon_new_action.set("")
@@ -161,21 +181,44 @@ def lb_add_new_action():
     combo_add_action.set("Software")
     color_add_action.set("Red")
     lb_handle_type_action("Software")
+def lb_new_key(data):
+    data["DECRYPT"] = lb_gen_password(random.randint(100, 150))
+    with open("./assets/json/env_var.json", "w", encoding="utf-8") as sens:
+        sens.write(json.dumps(data))
+
 class App(ctk.CTk):
     def __init__(self, title, dimension):
         super().__init__()
         self.title(title)
+        self.iconbitmap("./assets/img/logoRaycast.ico")
         self.geometry(dimension)
         self.resizable(width=False, height=False)
         self.configure(fg_color="#1D1D1D")
+class PopUp(ctk.CTkToplevel):
+    def __init__(self, master, title, dimension, message, color):
+        super().__init__(master)
+        self.title(title)
+        self.iconbitmap("./assets/img/logoRaycast.ico")
+        self.geometry(dimension)
+        self.grab_set()
+        self.label = ctk.CTkLabel(self, text=message, text_color=colors[color]["color_text_input"]).pack(pady=20)
+        self.button = ctk.CTkButton(self, text="Ok", border_width=2, text_color=colors[color]["color_text_input"], fg_color=colors[color]["fg_color"], hover_color=colors[color]["hover"], border_color=colors[color]["border_color"], command=self.destroyer).pack()
+    def destroyer(self):
+        self.destroy()
 
-with open("./env_var.json", "r") as env:
+with open("./assets/json/env_var.json", "r") as env:
     config_env = json.load(env)
+    try:
+        if config_env["DECRYPT"] == "":
+            print("exist but null")
+            lb_new_key(config_env)
+    except:
+        lb_new_key(config_env)
 encrypt_key = config_env["DECRYPT"]
 try:
-    with open("./command_info.json", "r") as data:
+    with open("./assets/json/command_info.json", "r") as data:
         try:
-            key_words = json.loads("\"".join(lb_decrypt(data.read(), encrypt_key).split("'")))
+            key_words = json.loads(lb_decrypt(data.read(), encrypt_key).replace("'", '"'))
         except:
             key_words = config_env["DEFAULT_KEY"]
 except:
@@ -184,9 +227,10 @@ co = cohere.Client(config_env["KEY_API"])
 
 opener = False
 shortcut = False
-colors = [{"name": "Red", "fg_color": "#2E1A1A", "border_color": "#C91616", "color_text_input": "#ffffff", "hover": "#7C1818"}, {"name": "Orange", "fg_color": "#2E221A", "border_color": "#C95516", "color_text_input": "#ffffff", "hover": "#7C3C18"}, {"name": "Yellow", "fg_color": "#2E2B1A", "border_color": "#C9AF16", "color_text_input": "#ffffff", "hover": "#7C6D18"}, {"name": "Green", "fg_color": "#1B2E1A", "border_color": "#1FC916", "color_text_input": "#ffffff", "hover": "#1D7C18"}, {"name": "Cyan", "fg_color": "#1A2E2C", "border_color": "#16C9BB", "color_text_input": "#ffffff", "hover": "#187C74"}, {"name": "Blue", "fg_color": "#1C1A2E", "border_color": "#2516C9", "color_text_input": "#ffffff", "hover": "#21187C"}, {"name": "Purple", "fg_color": "#2A1A2E", "border_color": "#7316C9", "color_text_input": "#ffffff", "hover": "#4F187C"}, {"name": "Pink", "fg_color": "#2E1A29", "border_color": "#C916A3", "color_text_input": "#ffffff", "hover": "#7C1866"}, {"name": "Dark pink", "fg_color": "#2E1A1F", "border_color": "#C9164C", "color_text_input": "#ffffff", "hover": "#7C1836"}, {"name": "White", "fg_color": "#BEBEBE", "border_color": "#ffffff", "color_text_input": "#000000", "hover": "#DFDFDF"}, {"name": "Black", "fg_color": "#3C3C3C", "border_color": "#000000", "color_text_input": "#ffffff", "hover": "#1E1E1E"}]
+colors = [{"name": "Red", "fg_color": "#2E1A1A", "border_color": "#C91616", "color_text_input": "#ffffff", "hover": "#7C1818"}, {"name": "Orange", "fg_color": "#2E221A", "border_color": "#C95516", "color_text_input": "#ffffff", "hover": "#7C3C18"}, {"name": "Yellow", "fg_color": "#2E2B1A", "border_color": "#C9AF16", "color_text_input": "#ffffff", "hover": "#7C6D18"}, {"name": "Green", "fg_color": "#1B2E1A", "border_color": "#1FC916", "color_text_input": "#ffffff", "hover": "#1D7C18"}, {"name": "Cyan", "fg_color": "#1A2E2C", "border_color": "#16C9BB", "color_text_input": "#ffffff", "hover": "#187C74"}, {"name": "Blue", "fg_color": "#1C1A2E", "border_color": "#2516C9", "color_text_input": "#ffffff", "hover": "#21187C"}, {"name": "Purple", "fg_color": "#2A1A2E", "border_color": "#7316C9", "color_text_input": "#ffffff", "hover": "#4F187C"}, {"name": "Pink", "fg_color": "#2E1A29", "border_color": "#C916A3", "color_text_input": "#ffffff", "hover": "#7C1866"}, {"name": "Dark pink", "fg_color": "#2E1A1F", "border_color": "#C9164C", "color_text_input": "#ffffff", "hover": "#7C1836"}, {"name": "White", "fg_color": "#BEBEBE", "border_color": "#ffffff", "color_text_input": "#000000", "hover": "#DFDFDF"}, {"name": "Black", "fg_color": "#000000", "border_color": "#3C3C3C", "color_text_input": "#ffffff", "hover": "#1E1E1E"}]
 possible_search = []
 console_element_list = []
+color_index = len(colors) - 1
 
 root = App("Raycast", "800x340")
 tabs = ctk.CTkTabview(root, width=700, height=300, text_color="#ffffff", segmented_button_fg_color="#000000", segmented_button_selected_color="#3C3C3C", segmented_button_selected_hover_color="#3C3C3C", segmented_button_unselected_color="#000000", segmented_button_unselected_hover_color="#1E1E1E")
