@@ -210,7 +210,6 @@ with open("./assets/json/env_var.json", "r") as env:
     config_env = json.load(env)
     try:
         if config_env["DECRYPT"] == "":
-            print("exist but null")
             lb_new_key(config_env)
     except:
         lb_new_key(config_env)
@@ -297,3 +296,4 @@ while not opener:
     """waiting cmd+m"""
 if opener:
     root.mainloop()
+    
