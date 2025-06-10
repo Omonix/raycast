@@ -1,0 +1,1 @@
+You can lanch this app with "app.exe" but you must have "env_var.json" file. So replace "KEY_API" with your AI's api key.
