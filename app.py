@@ -1,11 +1,18 @@
 import customtkinter as ctk
-import tkinter as tk
 from pynput import keyboard
 from PIL import Image
-import cohere, json, webbrowser, string, subprocess
+import cohere, json, webbrowser, string, subprocess, random
 
+def lb_gen_password(length):
+    alphabet = " !#$%&'()*+,-./:;<=>?@[]^_`{|}~" + string.ascii_letters + string.digits
+    pwd = ""
+    i = 0
+    while i < int(length):
+        pwd = pwd + random.choice(alphabet)
+        i = i + 1
+    return pwd
 def lb_vigenere(message, key, direction=1):
-    alphabet = ' ' + string.punctuation + string.ascii_letters + string.digits
+    alphabet = " !#$%&'()*+,-./:;<=>?@[]^_`{|}~" + string.ascii_letters + string.digits
     key_index = 0
     encrypted_message = ''
     for char in message:
@@ -62,7 +69,7 @@ def lb_autocomplete(search, key):
                 found_command = True
         if not found_command:
             found_command = True
-            PopUp(root, "Error", "200x100", "This command don't exist", color_index)
+            PopUp(root, "Error", "200x100", "This command doesn't exist", color_index)
         for i in console_element_list:
             i.pack_forget()
             i.pack(fill="x", pady=10)
@@ -174,6 +181,11 @@ def lb_add_new_action():
     combo_add_action.set("Software")
     color_add_action.set("Red")
     lb_handle_type_action("Software")
+def lb_new_key(data):
+    data["DECRYPT"] = lb_gen_password(random.randint(100, 150))
+    with open("./assets/json/env_var.json", "w", encoding="utf-8") as sens:
+        sens.write(json.dumps(data))
+
 class App(ctk.CTk):
     def __init__(self, title, dimension):
         super().__init__()
@@ -189,7 +201,6 @@ class PopUp(ctk.CTkToplevel):
         self.iconbitmap("./assets/img/logoRaycast.ico")
         self.geometry(dimension)
         self.grab_set()
-
         self.label = ctk.CTkLabel(self, text=message, text_color=colors[color]["color_text_input"]).pack(pady=20)
         self.button = ctk.CTkButton(self, text="Ok", border_width=2, text_color=colors[color]["color_text_input"], fg_color=colors[color]["fg_color"], hover_color=colors[color]["hover"], border_color=colors[color]["border_color"], command=self.destroyer).pack()
     def destroyer(self):
@@ -197,11 +208,16 @@ class PopUp(ctk.CTkToplevel):
 
 with open("./assets/json/env_var.json", "r") as env:
     config_env = json.load(env)
+    try:
+        if config_env["DECRYPT"] == "":
+            lb_new_key(config_env)
+    except:
+        lb_new_key(config_env)
 encrypt_key = config_env["DECRYPT"]
 try:
     with open("./assets/json/command_info.json", "r") as data:
         try:
-            key_words = json.loads("\"".join(lb_decrypt(data.read(), encrypt_key).split("'")))
+            key_words = json.loads(lb_decrypt(data.read(), encrypt_key).replace("'", '"'))
         except:
             key_words = config_env["DEFAULT_KEY"]
 except:
