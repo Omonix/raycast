@@ -1,7 +1,6 @@
 import customtkinter as ctk
-from pynput import keyboard
 from PIL import Image
-import cohere, json, webbrowser, string, subprocess, random
+import cohere, json, webbrowser, string, subprocess, random, keyboard, threading
 
 def lb_gen_password(length):
     alphabet = " !#$%&'()*+,-./:;<=>?@[]^_`{|}~" + string.ascii_letters + string.digits
@@ -28,7 +27,7 @@ def lb_decrypt(message, key):
 def lb_encrypt(message, key):
     return lb_vigenere(message, key)
 def lb_get_key(key):
-    global opener, shortcut, possible_search
+    global opener, shortcut
     try:
         if key.char == "m" and shortcut and not opener:
             opener = True
@@ -185,6 +184,15 @@ def lb_new_key(data):
     data["DECRYPT"] = lb_gen_password(random.randint(100, 150))
     with open("./assets/json/env_var.json", "w", encoding="utf-8") as sens:
         sens.write(json.dumps(data))
+def lb_listen_key():
+    keyboard.add_hotkey('ctrl+shift+x', lb_handle_window)
+    keyboard.wait()
+def lb_handle_window():
+    if root.state() == "normal":
+        root.withdraw()
+    else:
+        root.deiconify()
+        root.lift()
 
 class App(ctk.CTk):
     def __init__(self, title, dimension):
@@ -194,6 +202,16 @@ class App(ctk.CTk):
         self.geometry(dimension)
         self.resizable(width=False, height=False)
         self.configure(fg_color="#1D1D1D")
+        self.actived = False
+    def activerter(self):
+        super().__init__()
+        if self.actived:
+            self.actived = False
+            self.withdraw()
+        else:
+            self.actived = True
+            self.deiconify()
+            self.lift()
 class PopUp(ctk.CTkToplevel):
     def __init__(self, master, title, dimension, message, color):
         super().__init__(master)
@@ -246,7 +264,6 @@ path_new_action = ctk.StringVar()
 
 to_do = ctk.CTkEntry(tabs.tab("Console"), width=500, textvariable=to_do_request, placeholder_text="Enter a command", fg_color="#000000", border_color="#3C3C3C", text_color="white", font=("Monospace", 18))
 to_do.pack(pady=6)
-to_do.bind("")
 to_do.bind("<KeyRelease>", lambda key: lb_autocomplete(to_do_request.get(), key))
 label_autocomplete = ctk.CTkLabel(tabs.tab("Console"), height=20, text="Enter a command", text_color="#5A5A5A", fg_color="#000000", font=("Monospace", 16))
 label_autocomplete.place(x=130, y=8.5)
@@ -289,11 +306,6 @@ adress_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(adress_ne
 query_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(query_new_action, "Search query", query_label, 250, 171))
 path_add_action.bind("<KeyRelease>", lambda key: lb_show_placeholder(path_new_action, "Path's file", path_label, 250, 133))
 
-speed_key = keyboard.Listener(on_press=lb_get_key)
-speed_key.start()
+threading.Thread(target=lb_listen_key, daemon=True).start()
 
-while not opener:
-    """waiting cmd+m"""
-if opener:
-    root.mainloop()
-    
+root.mainloop()
