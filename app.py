@@ -213,7 +213,6 @@ def lb_handle_window():
         root.lift()
 def lb_refresh_command():
     stringer = ''
-    print(key_words, 2)
     for i in range(len(key_words)):
         stringer += f'[{i}] - {key_words[i]['name']}\n'
     return stringer
@@ -221,7 +220,6 @@ def lb_remove_action():
     if num_delete_action.get() != '':
         try:
             key_words.pop(int(num_delete_action.get()))
-            print(key_words, 1)
             num_delete_action.set('')
             lb_show_placeholder(num_delete_action, "Num", num_label, 0, 0)
             info_remove_action.configure(text=lb_refresh_command())
