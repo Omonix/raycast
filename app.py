@@ -1,6 +1,5 @@
-import customtkinter as ctk
+import cohere, json, webbrowser, string, subprocess, random, keyboard, threading, winreg, datetime, customtkinter as ctk
 from PIL import Image
-import cohere, json, webbrowser, string, subprocess, random, keyboard, threading, winreg, datetime
 
 def lb_gen_password(length):
     alphabet = " !#$%&'()*+,-./:;<=>?@[]^_`{|}~" + string.ascii_letters + string.digits
@@ -142,8 +141,8 @@ def lb_add_new_action():
             key_words.append({"name": name_new_action.get(), "type": combo_add_action.get(), "index_color": index, "adress": adress_new_action.get(), "search_query": query_new_action.get(), "icon": icon_add_action.get()})
             adress_new_action.set("")
             query_new_action.set("")
-            lb_show_placeholder(adress_new_action, "Adress", adress_label, 250, 133)
-            lb_show_placeholder(query_new_action, "Search query", query_label, 250, 171)
+            lb_show_placeholder(adress_new_action, "Adress", adress_label, 269, 133)
+            lb_show_placeholder(query_new_action, "Search query", query_label, 269, 171)
         else:
             PopUp(root, "Error", "200x100", "Missing arguments", color_index)
             return
